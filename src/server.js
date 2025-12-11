@@ -1,27 +1,37 @@
-import 'dotenv/config';
+// src/server.js
 import express from 'express';
 import cors from 'cors';
-import { connectMongoDB } from './db/connectMongoDB.js';
+import 'dotenv/config';
+import { logger } from './middleware/logger.js';
+import notesRoutes from './routes/notesRoutes.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
-import logger from './middleware/logger.js'
-import notesRouter from './routes/notesRoutes.js'
-import {errorHandler} from './middleware/errorHandler.js'
+import { errorHandler } from './middleware/errorHandler.js';
+import { connectMongoDB } from './db/connectMongoDB.js';
 
+const app = express();
+const PORT = process.env.PORT ?? 3000;
 
-export const app = express();
-export const PORT = process.env.PORT || 3000;
+// Middleware
+app.use(logger);
+app.use(
+  express.json({
+    type: ['application/json', 'application/vnd.api+json'],
+  }),
+); // Дозволяє обробляти дані у форматі JSON, які надходять у body запиту.
+app.use(cors()); // Дозволяє запити з будь-яких джерел
 
-app.use(logger)
-app.use(express.json())
-app.use(cors())
+app.use(notesRoutes);
 
-app.use(notesRouter)
-
+// Middleware 404 (після всіх маршрутів)
 app.use(notFoundHandler);
-app.use(errorHandler)
 
-await connectMongoDB()
+// Middleware для обробки помилок
+app.use(errorHandler);
 
+// підключення до MongoDB
+await connectMongoDB();
+
+// Запуск сервера
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
