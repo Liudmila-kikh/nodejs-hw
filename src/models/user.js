@@ -22,12 +22,11 @@ const userSchema = new Schema(
   { timestamps: true, versionKey: false }
 );
 
-userSchema.pre('save', function (next) {
+userSchema.pre('save', function () {
   if (!this.username) {
     this.username = this.email;
   }
-  next();
-});
+  });
 
 // Перевизначаємо метод toJSON
 userSchema.methods.toJSON = function () {
